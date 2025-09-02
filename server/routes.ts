@@ -112,9 +112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { deviceId } = req.params;
       const { userId, limit } = req.query;
       const history = await storage.getUserWordHistory(
-        deviceId, 
-        userId as string, 
-        limit ? parseInt(limit as string) : undefined
+        deviceId,
+        userId as string,
+        limit ? parseInt(limit as string) : undefined,
       );
       res.json({ history });
     } catch (error) {
@@ -140,7 +140,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { deviceId } = req.params;
       const { userId } = req.query;
-      const preferences = await storage.getUserPreferences(deviceId, userId as string);
+      const preferences = await storage.getUserPreferences(
+        deviceId,
+        userId as string,
+      );
       res.json(preferences || {});
     } catch (error) {
       console.error("Error fetching preferences:", error);
@@ -164,7 +167,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { deviceId } = req.params;
       const { userId } = req.query;
       const updates = req.body;
-      const preferences = await storage.updateUserPreferences(deviceId, updates, userId as string);
+      const preferences = await storage.updateUserPreferences(
+        deviceId,
+        updates,
+        userId as string,
+      );
       res.json(preferences);
     } catch (error) {
       console.error("Error updating preferences:", error);
@@ -177,21 +184,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { deviceId } = req.params;
       const { userId, difficulty } = req.query;
-      
+
       // Get seen words for this user/device
       const seenWords = await storage.getSeenWords(deviceId, userId as string);
-      
+
       // Get word with enhanced service using smart selection
       const enhancedWordService = EnhancedWordService.getInstance();
       const word = await enhancedWordService.getSmartWordSelection(
         seenWords,
-        (difficulty as 'easy' | 'medium' | 'hard' | 'mixed') || 'mixed'
+        (difficulty as "easy" | "medium" | "hard" | "mixed") || "mixed",
       );
-      
+
       if (!word) {
         return res.status(404).json({ message: "No new words available" });
       }
-      
+
       res.json(word);
     } catch (error) {
       console.error("Error fetching smart word:", error);
@@ -231,15 +238,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/words/enhanced/difficulty/:difficulty", async (req, res) => {
     try {
       const { difficulty } = req.params;
-      
-      if (!['easy', 'medium', 'hard', 'mixed'].includes(difficulty)) {
+
+      if (!["easy", "medium", "hard", "mixed"].includes(difficulty)) {
         return res.status(400).json({ message: "Invalid difficulty level" });
       }
-      
+
       const enhancedWordService = EnhancedWordService.getInstance();
-      const word = await enhancedWordService.getWordByDifficulty(difficulty as any);
+      const word = await enhancedWordService.getWordByDifficulty(
+        difficulty as any,
+      );
       if (!word) {
-        return res.status(404).json({ message: "No words available for this difficulty" });
+        return res
+          .status(404)
+          .json({ message: "No words available for this difficulty" });
       }
       res.json(word);
     } catch (error) {
@@ -266,8 +277,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { minRank = 1, maxRank = 1000 } = req.query;
       const enhancedWordService = EnhancedWordService.getInstance();
       const words = enhancedWordService.getWordsByFrequencyRange(
-        parseInt(minRank as string), 
-        parseInt(maxRank as string)
+        parseInt(minRank as string),
+        parseInt(maxRank as string),
       );
       res.json(words);
     } catch (error) {
@@ -280,11 +291,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/words/enhanced/educational/:level", async (req, res) => {
     try {
       const { level } = req.params;
-      
-      if (!['elementary', 'intermediate', 'advanced'].includes(level)) {
+
+      if (!["elementary", "intermediate", "advanced"].includes(level)) {
         return res.status(400).json({ message: "Invalid educational level" });
       }
-      
+
       const enhancedWordService = EnhancedWordService.getInstance();
       const words = enhancedWordService.getEducationalWords(level as any);
       res.json(words);
@@ -298,11 +309,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/words/enhanced/search", async (req, res) => {
     try {
       const { q } = req.query;
-      
-      if (!q || typeof q !== 'string') {
+
+      if (!q || typeof q !== "string") {
         return res.status(400).json({ message: "Search query required" });
       }
-      
+
       const enhancedWordService = EnhancedWordService.getInstance();
       const words = enhancedWordService.searchWords(q);
       res.json(words);
